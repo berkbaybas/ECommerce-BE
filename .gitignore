@@ -1,0 +1,18 @@
+## .NET
+bin/
+obj/
+*.user
+.vs/
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Claude Code (kept locally, never pushed)
+CLAUDE.md
+.claude/
+

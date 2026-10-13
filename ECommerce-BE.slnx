@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="Core/Core.Abstraction/Core.Abstraction.csproj" />
+    <Project Path="Core/Core.Auth/Core.Auth.csproj" />
+    <Project Path="Core/Core.CQRS/Core.CQRS.csproj" />
+    <Project Path="Core/Core.Data.Mongo/Core.Data.Mongo.csproj" />
+    <Project Path="Core/Core.Host/Core.Host.csproj" />
+    <Project Path="Core/Core.IOC/Core.IOC.csproj" />
+    <Project Path="Core/Core.Realtime/Core.Realtime.csproj" />
+    <Project Path="Core/Core.Validation/Core.Validation.csproj" />
+  </Folder>
+  <Folder Name="/Services/" />
+  <Folder Name="/Services/Product/">
+    <Project Path="Services/Product/Product.Abstraction/Product.Abstraction.csproj" />
+    <Project Path="Services/Product/Product.API/Product.API.csproj" />
+    <Project Path="Services/Product/Product.Application/Product.Application.csproj" />
+    <Project Path="Services/Product/Product.Core/Product.Core.csproj" />
+    <Project Path="Services/Product/Product.Domain/Product.Domain.csproj" />
+    <Project Path="Services/Product/Product.Infrastructure/Product.Infrastructure.csproj" />
+  </Folder>
+</Solution>

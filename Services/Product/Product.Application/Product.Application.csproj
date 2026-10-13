@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Core.CQRS\Core.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\Core\Core.Validation\Core.Validation.csproj" />
+    <ProjectReference Include="..\..\..\Core\Core.Realtime\Core.Realtime.csproj" />
+    <ProjectReference Include="..\Product.Infrastructure\Product.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

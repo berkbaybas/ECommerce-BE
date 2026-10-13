@@ -1,0 +1,23 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: ecommerce-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: ecommerce-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./deploy/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+
+volumes:
+  mongo-data:

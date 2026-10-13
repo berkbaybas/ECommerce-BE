@@ -1,0 +1,22 @@
+@Product.API_HostAddress = http://localhost:5018
+@Keycloak_HostAddress = http://localhost:8080
+
+# User login (authorization_code + PKCE): run the API, open {{Product.API_HostAddress}}/swagger,
+# click "Authorize" -> "oidc" -> log in as demo / demo. Swagger UI handles code_verifier/code_challenge.
+
+### Get an access token via client_credentials (scopes: products.read products.write)
+# @name token
+POST {{Keycloak_HostAddress}}/realms/ecommerce/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=ecommerce-client&client_secret=ecommerce-client-secret
+
+###
+@accessToken = {{token.response.body.access_token}}
+
+### List products (requires products.read scope)
+GET {{Product.API_HostAddress}}/api/v1/products
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
