@@ -58,3 +58,11 @@ curl -X PATCH http://localhost:5018/api/v1/products/{id}/stock \
 ```
 
 Open the live demo page, log in, then update a product's stock/price from Swagger — the event appears in the page's log. Call `SubscribeToProduct(productId)` to receive only that product's events, or stay unsubscribed to receive the full-catalog broadcast.
+
+
+<img width="1418" height="646" alt="image" src="https://github.com/user-attachments/assets/889b2787-90e2-4bd1-8832-b5c0d3e8a7aa" />
+<img width="1418" height="842" alt="image" src="https://github.com/user-attachments/assets/4e1d7af9-4b62-411f-a495-27d872ff1a33" />
+<img width="1161" height="681" alt="image" src="https://github.com/user-attachments/assets/c5fe9eef-2b69-4818-be3c-d62dbe30af96" />
+<img width="884" height="456" alt="image" src="https://github.com/user-attachments/assets/da05686b-a136-44d6-b8f6-adc1bba9c400" />
+
+
