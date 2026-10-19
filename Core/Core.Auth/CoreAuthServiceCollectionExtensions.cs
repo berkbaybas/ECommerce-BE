@@ -18,6 +18,11 @@ public static class CoreAuthServiceCollectionExtensions
             .AddJwtBearer(options =>
             {
                 options.Authority = oAuthOptions.Authority;
+                if (!string.IsNullOrWhiteSpace(oAuthOptions.MetadataAddress))
+                {
+                    options.MetadataAddress = oAuthOptions.MetadataAddress;
+                }
+
                 options.Audience = oAuthOptions.Audience;
                 options.RequireHttpsMetadata = oAuthOptions.RequireHttpsMetadata;
                 options.TokenValidationParameters = new TokenValidationParameters

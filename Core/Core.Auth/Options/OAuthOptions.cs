@@ -6,6 +6,13 @@ public sealed class OAuthOptions
 
     public string Authority { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Optional discovery document URL used by the API to fetch metadata/JWKS when <see cref="Authority"/>
+    /// is not reachable from the API itself (e.g. API in a container, Authority is the browser-facing host).
+    /// Leave empty to derive it from <see cref="Authority"/>.
+    /// </summary>
+    public string MetadataAddress { get; init; } = string.Empty;
+
     public string Audience { get; init; } = string.Empty;
 
     public bool RequireHttpsMetadata { get; init; } = true;

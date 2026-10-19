@@ -5,10 +5,14 @@
 ## Run locally
 
 ```bash
-# 1. Start MongoDB + Keycloak (realm "ecommerce" is imported automatically)
-docker compose up -d
+# Everything in Docker: MongoDB + Keycloak (realm "ecommerce" auto-imported) + Product API
+docker compose up -d --build
+```
 
-# 2. Run the API
+Alternatively run only the infrastructure in Docker and the API on the host:
+
+```bash
+docker compose up -d mongo keycloak
 dotnet run --project Services/Product/Product.API
 ```
 
