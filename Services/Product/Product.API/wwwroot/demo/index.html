@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Stock Demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+  button { padding: .4rem .9rem; margin-right: .4rem; }
+  #log { background: #111; color: #9f9; padding: 1rem; height: 320px; overflow: auto; font: 13px/1.4 monospace; white-space: pre-wrap; }
+  .muted { color: #666; }
+</style>
+</head>
+<body>
+<h1>Live Stock / Price Demo</h1>
+<p class="muted">OAuth 2.0 authorization_code + PKCE (Keycloak) &rarr; JWT &rarr; authenticated SignalR WebSocket.</p>
+<p>
+  <button id="login">Login</button>
+  <button id="logout" hidden>Logout</button>
+  <span id="user"></span>
+</p>
+<p>
+  <input id="productId" placeholder="productId (empty = whole catalog)" size="38">
+  <button id="sub" disabled>Subscribe</button>
+  <button id="unsub" disabled>Unsubscribe</button>
+</p>
+<div id="log"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+const cfg = {
+  authority: 'http://localhost:8080/realms/ecommerce',
+  clientId: 'product-swagger',
+  scope: 'openid products.read',
+  redirectUri: location.origin + '/demo/index.html',
+  hubUrl: '/hubs/products',
+};
+const $ = id => document.getElementById(id);
+const log = m => { $('log').textContent += `[${new Date().toLocaleTimeString()}] ${m}\n`; $('log').scrollTop = 1e9; };
+
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const rand = () => b64url(crypto.getRandomValues(new Uint8Array(32)));
+
+async function login() {
+  const verifier = rand(), state = rand();
+  sessionStorage.setItem('pkce', JSON.stringify({ verifier, state }));
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  const q = new URLSearchParams({
+    response_type: 'code', client_id: cfg.clientId, redirect_uri: cfg.redirectUri,
+    scope: cfg.scope, state, code_challenge: challenge, code_challenge_method: 'S256',
+  });
+  location.href = `${cfg.authority}/protocol/openid-connect/auth?${q}`;
+}
+
+async function handleRedirect() {
+  const p = new URLSearchParams(location.search);
+  if (!p.has('code')) return;
+  const saved = JSON.parse(sessionStorage.getItem('pkce') || '{}');
+  history.replaceState({}, '', cfg.redirectUri);
+  if (p.get('state') !== saved.state) { log('State mismatch - aborting.'); return; }
+  const res = await fetch(`${cfg.authority}/protocol/openid-connect/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'authorization_code', client_id: cfg.clientId, code: p.get('code'),
+      redirect_uri: cfg.redirectUri, code_verifier: saved.verifier,
+    }),
+  });
+  if (!res.ok) { log('Token exchange failed: ' + await res.text()); return; }
+  sessionStorage.setItem('token', (await res.json()).access_token);
+}
+
+let connection;
+async function connect(token) {
+  const claims = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+  $('user').textContent = `Signed in as ${claims.preferred_username ?? claims.sub} (scope: ${claims.scope})`;
+  $('login').hidden = true; $('logout').hidden = false;
+
+  connection = new signalR.HubConnectionBuilder()
+    .withUrl(cfg.hubUrl, { accessTokenFactory: () => sessionStorage.getItem('token') })
+    .withAutomaticReconnect().build();
+  connection.on('productStockUpdated', p => log('STOCK ' + JSON.stringify(p)));
+  connection.on('productPriceUpdated', p => log('PRICE ' + JSON.stringify(p)));
+  connection.onclose(() => log('Disconnected.'));
+  try {
+    await connection.start();
+    log('WebSocket connected (authenticated).');
+    $('sub').disabled = $('unsub').disabled = false;
+  } catch (e) { log('Connection failed: ' + e); }
+}
+
+$('login').onclick = login;
+$('logout').onclick = () => {
+  sessionStorage.clear();
+  location.href = `${cfg.authority}/protocol/openid-connect/logout?client_id=${cfg.clientId}&post_logout_redirect_uri=${encodeURIComponent(cfg.redirectUri)}`;
+};
+$('sub').onclick = async () => { const id = $('productId').value.trim(); if (id) { await connection.invoke('SubscribeToProduct', id); log('Subscribed to ' + id); } else log('Receiving full-catalog broadcast.'); };
+$('unsub').onclick = async () => { const id = $('productId').value.trim(); if (id) { await connection.invoke('UnsubscribeFromProduct', id); log('Unsubscribed from ' + id); } };
+
+(async () => {
+  await handleRedirect();
+  const token = sessionStorage.getItem('token');
+  if (token) await connect(token); else log('Not signed in.');
+})();
+</script>
+</body>
+</html>

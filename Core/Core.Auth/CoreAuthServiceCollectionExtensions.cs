@@ -26,6 +26,22 @@ public static class CoreAuthServiceCollectionExtensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                 };
+
+                // Browsers cannot set an Authorization header on a WebSocket handshake, so SignalR
+                // sends the token as ?access_token=; accept it for hub paths only.
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
         return services;

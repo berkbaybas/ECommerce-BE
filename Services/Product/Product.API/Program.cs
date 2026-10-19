@@ -36,7 +36,8 @@ builder.Services.AddAuthorizationBuilder()
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 app.UseCoreHost();
-app.MapHub<ProductHub>("/hubs/products");
+app.MapHub<ProductHub>("/hubs/products").RequireAuthorization(ProductScopes.Read);
 
 app.Run();
