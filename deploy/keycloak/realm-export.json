@@ -38,6 +38,43 @@
           }
         }
       ]
+    },
+    {
+      "name": "categories.read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "name": "categories.write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "name": "category-api-audience",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "category-api-audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "category-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "clients": [
@@ -50,9 +87,21 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
-      "redirectUris": ["http://localhost:5000/*", "https://localhost:5001/*"],
-      "webOrigins": ["*"],
-      "defaultClientScopes": ["products.read", "products.write", "product-api-audience"]
+      "redirectUris": [
+        "http://localhost:5000/*",
+        "https://localhost:5001/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "defaultClientScopes": [
+        "products.read",
+        "products.write",
+        "product-api-audience",
+        "categories.read",
+        "categories.write",
+        "category-api-audience"
+      ]
     },
     {
       "clientId": "product-swagger",
@@ -70,7 +119,10 @@
         "http://localhost:5018/demo/index.html",
         "https://localhost:7096/demo/index.html"
       ],
-      "webOrigins": ["http://localhost:5018", "https://localhost:7096"],
+      "webOrigins": [
+        "http://localhost:5018",
+        "https://localhost:7096"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:5018/*##https://localhost:7096/*"
@@ -101,7 +153,36 @@
           }
         }
       ],
-      "defaultClientScopes": ["products.read", "products.write", "product-api-audience"]
+      "defaultClientScopes": [
+        "products.read",
+        "products.write",
+        "product-api-audience"
+      ]
+    },
+    {
+      "clientId": "category-swagger",
+      "name": "Category API Swagger UI",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5019/swagger/oauth2-redirect.html"
+      ],
+      "webOrigins": [
+        "http://localhost:5019"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "categories.read",
+        "categories.write",
+        "category-api-audience"
+      ]
     }
   ],
   "users": [

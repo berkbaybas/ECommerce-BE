@@ -37,5 +37,21 @@ services:
     ports:
       - "5018:5018"
 
+  category-api:
+    build:
+      context: .
+      dockerfile: Services/Category/Dockerfile
+    container_name: ecommerce-category-api
+    depends_on:
+      - mongo
+      - keycloak
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      MongoSettings__ConnectionString: mongodb://mongo:27017
+      OAuth__Authority: http://localhost:8080/realms/ecommerce
+      OAuth__MetadataAddress: http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
+    ports:
+      - "5019:5019"
+
 volumes:
   mongo-data:

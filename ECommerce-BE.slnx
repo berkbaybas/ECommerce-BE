@@ -10,6 +10,14 @@
     <Project Path="Core/Core.Validation/Core.Validation.csproj" />
   </Folder>
   <Folder Name="/Services/" />
+  <Folder Name="/Services/Category/">
+    <Project Path="Services/Category/Category.Abstraction/Category.Abstraction.csproj" />
+    <Project Path="Services/Category/Category.API/Category.API.csproj" />
+    <Project Path="Services/Category/Category.Application/Category.Application.csproj" />
+    <Project Path="Services/Category/Category.Core/Category.Core.csproj" />
+    <Project Path="Services/Category/Category.Domain/Category.Domain.csproj" />
+    <Project Path="Services/Category/Category.Infrastructure/Category.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/Services/Product/">
     <Project Path="Services/Product/Product.Abstraction/Product.Abstraction.csproj" />
     <Project Path="Services/Product/Product.API/Product.API.csproj" />

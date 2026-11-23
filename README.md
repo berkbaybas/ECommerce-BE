@@ -4,6 +4,14 @@
 
 ## Run locally
 
+The Category microservice provides CRUD at `http://localhost:5019/api/v1/categories`
+and Swagger at `http://localhost:5019/swagger`. It uses its own MongoDB database
+(`ECommerceCategories`) and requires `categories.read` or `categories.write` scopes.
+The existing `ecommerce-client` receives both scopes and the `category-api` audience.
+For host execution, run `dotnet run --project Services/Category/Category.API`.
+Existing Keycloak installations must import the updated realm configuration to add
+the category client, scopes, and audience; recreating its data also removes existing realm data.
+
 ```bash
 # Everything in Docker: MongoDB + Keycloak (realm "ecommerce" auto-imported) + Product API
 docker compose up -d --build
