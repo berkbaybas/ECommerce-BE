@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\Core\Core.CQRS\Core.CQRS.csproj" />
+    <ProjectReference Include="..\..\Services\Product\Product.Abstraction\Product.Abstraction.csproj" />
+    <ProjectReference Include="..\..\Services\Category\Category.Abstraction\Category.Abstraction.csproj" />
+  </ItemGroup>
+</Project>

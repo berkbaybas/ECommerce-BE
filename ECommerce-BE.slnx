@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/BFF/">
+    <Project Path="BFF/BFF.API/BFF.API.csproj" />
+    <Project Path="BFF/BFF.Application/BFF.Application.csproj" />
+  </Folder>
   <Folder Name="/Core/">
     <Project Path="Core/Core.Abstraction/Core.Abstraction.csproj" />
     <Project Path="Core/Core.Auth/Core.Auth.csproj" />

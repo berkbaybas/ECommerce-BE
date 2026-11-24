@@ -1,76 +1,68 @@
 # ECommerce-BE
 
-.NET 8 e-commerce Product service — Clean Architecture + CQRS, MongoDB (NoSQL) persistence, SignalR (WebSocket) real-time stock/price broadcasts, and OAuth 2.0 / OpenID Connect resource-server security (Keycloak for local dev).
+.NET 8 e-commerce backend with Product and Category microservices, a BFF, MongoDB,
+Keycloak authentication and SignalR product updates.
 
 ## Run locally
 
-The Category microservice provides CRUD at `http://localhost:5019/api/v1/categories`
-and Swagger at `http://localhost:5019/swagger`. It uses its own MongoDB database
-(`ECommerceCategories`) and requires `categories.read` or `categories.write` scopes.
-The existing `ecommerce-client` receives both scopes and the `category-api` audience.
-For host execution, run `dotnet run --project Services/Category/Category.API`.
-Existing Keycloak installations must import the updated realm configuration to add
-the category client, scopes, and audience; recreating its data also removes existing realm data.
-
 ```bash
-# Everything in Docker: MongoDB + Keycloak (realm "ecommerce" auto-imported) + Product API
 docker compose up -d --build
 ```
 
-Alternatively run only the infrastructure in Docker and the API on the host:
+The BFF is the public API entry point at `http://localhost:5020`. Product and
+Category are available only on the Docker network; their ports are not published.
+Keycloak remains accessible at `http://localhost:8080`, and MongoDB at port 27017.
+The BFF Swagger UI is available at `http://localhost:5020/swagger`; use Authorize
+to enter an access token before calling the endpoints.
+Service-grouped routes follow the RayConnect BFF convention:
+`/product/api/v1/products` and `/category/api/v1/categories`. The shorter
+`/api/v1/products` and `/api/v1/categories` routes remain available as aliases.
 
-```bash
-docker compose up -d mongo keycloak
-dotnet run --project Services/Product/Product.API
-```
+| BFF route | Purpose | Required scope |
+| --- | --- | --- |
+| `/api/v1/products` | Product CRUD and search | `products.read` / `products.write` |
+| `/api/v1/categories` | Category CRUD | `categories.read` / `categories.write` |
+| `GET /api/v1/catalog` | Combined product and category lists | Both read scopes |
+| `/hubs/products` | SignalR negotiation and transports | `products.read` |
+| `/demo/index.html` | SignalR demo | Login through Keycloak |
 
-- Swagger UI: `http://localhost:5018/swagger` (Authorize → `oidc` → log in as `demo` / `demo`)
-- SignalR hub: `ws://localhost:5018/hubs/products` (requires a token with the `products.read` scope)
-- Live demo: `http://localhost:5018/demo/index.html`
-- Keycloak admin: `http://localhost:8080`
+REST requests retain their paths, query strings, bodies, status codes and response
+bodies when forwarded to the corresponding service. The catalog endpoint returns
+each service's response envelope under `products` or `categories`, and responds
+with 502 when a service fails. The BFF accepts bearer tokens and forwards them to
+the services; it does not implement cookie-based login or token storage.
 
-If you already ran Keycloak with an older volume, remove it (`docker compose down -v`) so the realm is re-imported.
-
-## Security
-
-Every REST endpoint and the SignalR hub require a JWT access token issued by the OIDC provider:
-
-| Scope | Grants |
-|-------|--------|
-| `products.read` | GET endpoints, connecting to the SignalR hub |
-| `products.write` | POST / PUT / PATCH / DELETE |
-
-Get a machine token (client credentials):
+The `ecommerce-client` machine client receives the BFF and service audiences and
+the read/write scopes. To get a token and call the BFF:
 
 ```bash
 curl -X POST http://localhost:8080/realms/ecommerce/protocol/openid-connect/token \
   -d "grant_type=client_credentials&client_id=ecommerce-client&client_secret=ecommerce-client-secret"
-```
 
-Browsers cannot set an `Authorization` header on a WebSocket handshake, so SignalR clients pass the token as `?access_token=` (accepted only on `/hubs/*`).
-
-## Try it
-
-```bash
 TOKEN=<access_token>
-
-# Create a product
-curl -X POST http://localhost:5018/api/v1/products \
+curl http://localhost:5020/api/v1/catalog -H "Authorization: Bearer $TOKEN"
+curl -X POST http://localhost:5020/api/v1/products \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"name":"Wireless Mouse","sku":"WM-001","price":19.99,"stock":50}'
-
-# Update stock (broadcasts productStockUpdated over SignalR)
-curl -X PATCH http://localhost:5018/api/v1/products/{id}/stock \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"stock":10}'
 ```
 
-Open the live demo page, log in, then update a product's stock/price from Swagger — the event appears in the page's log. Call `SubscribeToProduct(productId)` to receive only that product's events, or stay unsubscribed to receive the full-catalog broadcast.
+The demo at `http://localhost:5020/demo/index.html` logs in as `demo` / `demo`
+and connects to the SignalR hub through the BFF. Browser SignalR clients can pass
+the access token as `?access_token=` on hub routes.
 
+For a frontend, the public `bff-client` supports authorization code + PKCE with
+`http://localhost:3000` as the development origin. Configure its Keycloak redirect
+URIs and `Cors:AllowedOrigins` for the frontend's actual address. Existing
+Keycloak realms must be updated or re-imported to include the BFF audience, client
+and demo redirect URI. Recreating realm data removes existing realm data.
 
-<img width="1418" height="646" alt="image" src="https://github.com/user-attachments/assets/889b2787-90e2-4bd1-8832-b5c0d3e8a7aa" />
-<img width="1418" height="842" alt="image" src="https://github.com/user-attachments/assets/4e1d7af9-4b62-411f-a495-27d872ff1a33" />
-<img width="1161" height="681" alt="image" src="https://github.com/user-attachments/assets/c5fe9eef-2b69-4818-be3c-d62dbe30af96" />
-<img width="884" height="456" alt="image" src="https://github.com/user-attachments/assets/da05686b-a136-44d6-b8f6-adc1bba9c400" />
+For host-based development, start infrastructure with `docker compose up -d mongo
+keycloak`, then run `Services/Product/Product.API`, `Services/Category/Category.API`,
+and `BFF/BFF.API` using `dotnet run --project <path>`. The BFF's default upstream
+addresses are localhost ports 5018 and 5019. The individual service Swagger pages
+are available on those ports when the services run directly on the host.
 
-
+<img width="1418" height="646" alt="Product demo" src="https://github.com/user-attachments/assets/889b2787-90e2-4bd1-8832-b5c0d3e8a7aa" />
+<img width="1418" height="842" alt="Product demo" src="https://github.com/user-attachments/assets/4e1d7af9-4b62-411f-a495-27d872ff1a33" />
+<img width="1161" height="681" alt="Product demo" src="https://github.com/user-attachments/assets/c5fe9eef-2b69-4818-be3c-d62dbe30af96" />
+<img width="884" height="456" alt="Product demo" src="https://github.com/user-attachments/assets/da05686b-a136-44d6-b8f6-adc1bba9c400" />
