@@ -34,8 +34,6 @@ services:
       MongoSettings__ConnectionString: mongodb://mongo:27017
       OAuth__Authority: http://localhost:8080/realms/ecommerce
       OAuth__MetadataAddress: http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
-    ports:
-      - "5018:5018"
 
   category-api:
     build:
@@ -50,8 +48,24 @@ services:
       MongoSettings__ConnectionString: mongodb://mongo:27017
       OAuth__Authority: http://localhost:8080/realms/ecommerce
       OAuth__MetadataAddress: http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
+
+  bff-api:
+    build:
+      context: .
+      dockerfile: BFF/Dockerfile
+    container_name: ecommerce-bff-api
+    depends_on:
+      - product-api
+      - category-api
+      - keycloak
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Services__Product: http://product-api:5018/
+      Services__Category: http://category-api:5019/
+      OAuth__Authority: http://localhost:8080/realms/ecommerce
+      OAuth__MetadataAddress: http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
     ports:
-      - "5019:5019"
+      - "5020:5020"
 
 volumes:
   mongo-data:
